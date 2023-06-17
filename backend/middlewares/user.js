@@ -7,6 +7,7 @@ exports.isValidPassResetToken = async (req, res, next) => {
 		return sendError(res, "Invalid request");
 
 	const resetToken = await PasswordResetToken.findOne({ owner: userId });
+	//console.log(resetToken);
 	if (!resetToken)
 		return sendError(res, "Unauthorize access, invalid request!");
 

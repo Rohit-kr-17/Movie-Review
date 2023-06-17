@@ -32,3 +32,9 @@ exports.validate = (req, res, next) => {
 	}
 	next();
 };
+
+exports.actorInfoValidator = [
+	check("name").trim().not().isEmpty().withMessage("Name is missing"),
+	check("about").trim().not().isEmpty().withMessage("about is missing"),
+	check("gender").trim().not().isEmpty().withMessage("Gender is missing"),
+];

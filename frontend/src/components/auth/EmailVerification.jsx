@@ -1,17 +1,41 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Container from "../Container";
 import Submit from "../form/Submit";
 import Title from "../form/Title";
 import FormContainer from "../form/FormContainer";
 import { commonMdalClasses } from "../../utils/Theme";
+import { resendEmailVerificationToken, verifyUserEmail } from "../../api/auth";
+import { useAuth, useNotification } from "../../hooks";
 const OTP_LENGTH = 6;
+const isValidOTP = (otp) => {
+	let valid = false;
+	for (let val of otp) {
+		valid = !isNaN(parseInt(val));
+		if (!valid) break;
+	}
+
+	return valid;
+};
 let currentOTPIndex;
 export default function EmailVerification() {
+	const { isAuth, authInfo } = useAuth();
+	const { isLoggedIn, profile } = authInfo;
+	const isVerified = profile?.isVerified;
 	const [otp, setOtp] = useState(new Array(OTP_LENGTH).fill(""));
 	const [activeOtpIndex, setActiveOtpIndex] = useState(0);
 	const inputRef = useRef();
+	const { updateNotification } = useNotification();
+	const { state } = useLocation();
+	const user = state?.user;
+	const navigate = useNavigate();
 	const focusNextInputField = (index) => {
 		setActiveOtpIndex(index + 1);
+	};
+	const handleOTPResend = async () => {
+		const { error, message } = await resendEmailVerificationToken(user.id);
+		if (error) return updateNotification("error", error);
+		return updateNotification("success", message);
 	};
 	const focusPrevInputField = (index) => {
 		let nexIndex;
@@ -36,13 +60,41 @@ export default function EmailVerification() {
 			setOtp([...newOtp]);
 		}
 	};
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+
+		if (!isValidOTP(otp)) {
+			return updateNotification("error", "Invalid OTP");
+		}
+		//submit otp
+		const {
+			error,
+			message,
+			user: userResponse,
+		} = await verifyUserEmail({
+			OTP: otp.join(""),
+			userId: user.id,
+		});
+		if (error) return updateNotification("error", error);
+		updateNotification("success", message);
+		localStorage.setItem("auth-token", userResponse.token);
+		isAuth();
+		//console.log(otp);
+	};
 	useEffect(() => {
 		inputRef.current?.focus();
 	}, [activeOtpIndex]);
+
+	useEffect(() => {
+		if (!user) navigate("/not-found");
+		if (isLoggedIn && isVerified) navigate("/");
+	}, [user, isLoggedIn, isVerified]);
+	//if (!user) return;
 	return (
 		<FormContainer>
 			<Container>
-				<form className={commonMdalClasses}>
+				<form onSubmit={handleSubmit} className={commonMdalClasses}>
 					<div className="">
 						<Title>Please enter The OTP to verify your account</Title>
 						<p className="text-center dark:text-dark-subtle text-light-subtle">
@@ -65,8 +117,16 @@ export default function EmailVerification() {
 							);
 						})}
 					</div>
-
-					<Submit value="Send Link" />
+					<div>
+						<Submit value="Verify Account" />
+						<button
+							type="button"
+							onClick={handleOTPResend}
+							className="dark:text-white text-blue-500 font-semibold hover:underline mt-2 "
+						>
+							I don't have OTP
+						</button>
+					</div>
 				</form>
 			</Container>
 		</FormContainer>

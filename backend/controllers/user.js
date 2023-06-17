@@ -30,7 +30,9 @@ exports.create = async (req, res) => {
 		<p> Your Verification OTP
 		<h1>${OTP}</h1>`,
 	});
-	res.status(201).json({ message: "Please verify you email" });
+	res.status(201).json({
+		user: { id: newUser._id, name: newUser.name, email: newUser.email },
+	});
 };
 
 exports.verifyEmail = async (req, res) => {
@@ -56,7 +58,17 @@ exports.verifyEmail = async (req, res) => {
 		html: `
 		<p> You are Verified`,
 	});
-	res.json({ message: "Your email is verified" });
+	const jwtToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+	res.json({
+		user: {
+			id: user._id,
+			name: user.name,
+			email: user.email,
+			token: jwtToken,
+			isVerified: user.isVerified,
+		},
+		message: "Your email is verified",
+	});
 };
 
 exports.resendEmailVerificationToken = async (req, res) => {
@@ -107,7 +119,7 @@ exports.forgetPassword = async (req, res) => {
 		token,
 	});
 	await newPasswordResetToken.save();
-	const resetPasswordUrl = `http://localhost:3000/reset-password?token=${token}&id=${user._id}`;
+	const resetPasswordUrl = `http://localhost:3000/auth/reset-password?token=${token}&id=${user._id}`;
 	const transport = generateMailTransporter();
 	transport.sendMail({
 		from: "security@reviewapp.com",
@@ -148,7 +160,7 @@ exports.signIn = async (req, res) => {
 
 	const matched = await user.comparePassword(password);
 	if (!matched) return sendError(res, "Credential mismatch");
-	const { _id, name } = user;
+	const { _id, name, isVerified } = user;
 	const jwtToken = jwt.sign({ userId: _id }, process.env.JWT_SECRET);
-	res.json({ user: { id: _id, name, email, token: jwtToken } });
+	res.json({ user: { id: _id, name, email, token: jwtToken, isVerified } });
 };
