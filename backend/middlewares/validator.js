@@ -86,10 +86,10 @@ exports.validateMovie = [
 				throw Error("Trailer url is Invalid");
 			}
 		}),
-	check("poster").custom((_, { req }) => {
-		if (!req.file) throw Error("Poster file is Invalid");
-		return true;
-	}),
+	// check("poster").custom((_, { req }) => {
+	// 	if (!req.file) throw Error("Poster file is Invalid");
+	// 	return true;
+	// }),
 ];
 
 exports.actorInfoValidator = [
