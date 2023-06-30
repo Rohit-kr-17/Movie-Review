@@ -65,6 +65,7 @@ exports.verifyEmail = async (req, res) => {
 			name: user.name,
 			email: user.email,
 			token: jwtToken,
+			role: user.role,
 			isVerified: user.isVerified,
 		},
 		message: "Your email is verified",
