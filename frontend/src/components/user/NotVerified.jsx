@@ -5,8 +5,6 @@ import Container from "../Container";
 
 export default function NotVerified() {
 	const { authInfo } = useAuth();
-	console.log(authInfo);
-
 	const navigate = useNavigate();
 	const navigateToVerification = () => {
 		navigate("/auth/verification", { state: { user: authInfo.profile } });

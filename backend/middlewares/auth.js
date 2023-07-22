@@ -3,7 +3,9 @@ const User = require("../models/user");
 const { sendError } = require("../utils/helper");
 exports.isAuth = async (req, res, next) => {
 	const token = req.headers?.authorization;
+	console.log(token);
 	if (!token) {
+		console.log("no token");
 		return sendError(res, "Login first");
 	}
 	const jwtToken = token.split("Bearer ")[1];

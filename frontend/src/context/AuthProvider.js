@@ -34,9 +34,9 @@ export default function AuthProvider({ children }) {
 	};
 	const isAuth = async () => {
 		const token = localStorage.getItem("auth-token");
-		console.log(token);
 		if (!token) return;
 		setAuthInfo({ ...authInfo, isPending: true });
+
 		const { error, user } = await getIsAuth(token);
 		//console.log(user);
 		if (error) {
